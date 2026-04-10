@@ -138,11 +138,11 @@ img { display: block; max-width: 100%; }
 }
 .hero-copy {
   max-width: 540px;
-  margin-top: 300px;
-  padding: 28px;
+  margin-top: 430px;
+  padding: 30px 30px 32px;
   border-radius: 28px;
   color: white;
-  background: rgba(200, 161, 77, 0.22);
+  background: rgba(200, 161, 77, 0.18);
   backdrop-filter: blur(14px);
   box-shadow: var(--shadow);
   text-align: center;
@@ -246,6 +246,36 @@ img { display: block; max-width: 100%; }
 .combo-copy p { color: rgba(255,255,255,0.82); margin-top: 12px; }
 .combo-actions { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 28px; }
 .instagram-link { color: #f4d58f; font-weight: 700; text-decoration: underline; }
+.combo-logo-badge {
+  width: fit-content;
+  padding: 12px 16px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  margin-bottom: 14px;
+}
+.combo-logo-badge img { width: 180px; }
+.combo-bullets {
+  margin-top: 22px;
+  padding-left: 18px;
+  display: grid;
+  gap: 10px;
+  color: rgba(255,255,255,0.86);
+}
+.combo-highlight-box {
+  margin-top: 24px;
+  padding: 18px 20px;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  font-weight: 800;
+  color: #fff5d6;
+}
+.combo-guarantee {
+  margin-top: 18px;
+  font-size: 0.96rem;
+  color: rgba(255,255,255,0.72) !important;
+}
 .combo-card { padding: 30px; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); }
 .combo-card img { margin-bottom: 24px; }
 .combo-quote { padding: 24px; border-radius: 24px; background: rgba(255,255,255,0.08); }
@@ -260,6 +290,7 @@ img { display: block; max-width: 100%; }
 .footer-cranios-copy { display: grid; gap: 8px; justify-items: center; }
 .footer-cranios-copy strong { font-family: 'Poppins', sans-serif; font-size: 1.1rem; }
 .footer-cranios-copy a { color: var(--primary); font-weight: 700; }
+.footer-contact-button { color: #2e2410 !important; margin-top: 8px; }
 
 .modal-shell { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; }
 .modal-backdrop { position: absolute; inset: 0; background: rgba(8, 12, 18, 0.68); }
@@ -534,7 +565,7 @@ img { display: block; max-width: 100%; }
 @media (max-width: 980px) {
   .school-grid, .pricing-grid, .combo-grid, .admin-header, .admin-panels, .concept-grid { grid-template-columns: 1fr; }
   .hero-pill { top: 56px; }
-  .hero-copy { margin-top: 250px; }
+  .hero-copy { margin-top: 340px; }
   .admin-metrics { grid-template-columns: repeat(2, 1fr); }
   .admin-topbar,
   .admin-header { grid-template-columns: 1fr; }
@@ -546,7 +577,7 @@ img { display: block; max-width: 100%; }
   .top-actions { flex-wrap: wrap; justify-content: flex-end; }
   .hero-content { padding-top: 110px; }
   .hero-pill { top: 44px; padding: 10px 16px; font-size: 0.68rem; }
-  .hero-copy { margin-top: 220px; padding: 22px; }
+  .hero-copy { margin-top: 360px; padding: 22px; }
   .field-grid, .summary-grid, .success-summary, .order-meta, .strip-grid, .category-columns { grid-template-columns: 1fr; }
   .admin-actions { grid-template-columns: 1fr; }
   .admin-metrics { grid-template-columns: 1fr 1fr; }
