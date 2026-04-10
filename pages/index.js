@@ -1,7 +1,6 @@
 import Head from 'next/head'
 import { useEffect, useMemo, useState } from 'react'
 import {
-  ADMIN_PIN,
   CEO_WHATSAPP_LINK,
   EVENT_DATE_LABEL,
   EVENT_LOCATION,
@@ -108,6 +107,7 @@ export default function Home() {
   const [adminOpen, setAdminOpen] = useState(false)
   const [pin, setPin] = useState('')
   const [pinError, setPinError] = useState('')
+  const [adminSessionPin, setAdminSessionPin] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
   const [orders, setOrders] = useState([])
   const [ordersLoading, setOrdersLoading] = useState(false)
@@ -131,14 +131,14 @@ export default function Home() {
   }, [orders, search])
 
   useEffect(() => {
-    if (!isAdmin) return
+    if (!isAdmin || !adminSessionPin) return
     loadOrders()
-  }, [isAdmin])
+  }, [isAdmin, adminSessionPin])
 
   async function loadOrders() {
     try {
       setOrdersLoading(true)
-      const response = await fetch('/api/pedidos', { headers: { 'x-admin-pin': ADMIN_PIN } })
+      const response = await fetch('/api/pedidos', { headers: { 'x-admin-pin': adminSessionPin } })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Erro ao carregar pedidos.')
       setOrders(data)
@@ -226,7 +226,7 @@ export default function Home() {
       setAdminActionLoading(true)
       const response = await fetch(`/api/pedidos/${order.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'x-admin-pin': ADMIN_PIN },
+        headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminSessionPin },
         body: JSON.stringify({ pagamento_confirmado: !order.pagamento_confirmado }),
       })
       const data = await response.json()
@@ -245,7 +245,7 @@ export default function Home() {
       setAdminActionLoading(true)
       const response = await fetch('/api/followup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-pin': ADMIN_PIN },
+        headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminSessionPin },
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Nao foi possivel enviar follow-up.')
@@ -258,15 +258,27 @@ export default function Home() {
     }
   }
 
-  function openAdminArea() {
-    if (pin === ADMIN_PIN) {
+  async function openAdminArea() {
+    try {
+      const response = await fetch('/api/pedidos', {
+        headers: { 'x-admin-pin': pin },
+      })
+
+      if (!response.ok) {
+        setPinError('Senha incorreta.')
+        return
+      }
+
+      const data = await response.json()
+      setOrders(data)
+      setAdminSessionPin(pin)
       setIsAdmin(true)
       setAdminOpen(false)
       setPin('')
       setPinError('')
-      return
+    } catch (error) {
+      setPinError('Nao foi possivel validar o acesso admin.')
     }
-    setPinError('Senha incorreta.')
   }
 
   function copyPix() {
@@ -434,7 +446,7 @@ export default function Home() {
       {adminOpen ? (
         <ModalShell onClose={() => setAdminOpen(false)}>
           <span className="eyebrow">Area Admin</span>
-          <h3>Digite a senha 250284</h3>
+          <h3>Acesso restrito da administracao</h3>
           <p className="modal-intro">Esta area controla pagamentos, dashboard, follow-up e relatorios.</p>
           <input className="admin-input" type="password" value={pin} onChange={(event) => { setPin(event.target.value); setPinError('') }} onKeyDown={(event) => { if (event.key === 'Enter') openAdminArea() }} placeholder="Senha admin" />
           {pinError ? <small className="error-line">{pinError}</small> : null}
@@ -570,7 +582,7 @@ export default function Home() {
       {isAdmin ? (
         <section className="admin-shell">
           <div className="container admin-header">
-            <div><span className="eyebrow">Dashboard admin</span><h2>Controle completo das inscricoes</h2><p>Senha configurada: 250284.</p></div>
+            <div><span className="eyebrow">Dashboard admin</span><h2>Controle completo das inscricoes</h2><p>Ambiente restrito para equipe autorizada.</p></div>
             <div className="admin-actions">
               <button className="ghost-button" onClick={generatePdf} type="button">Gerar relatorio em PDF</button>
               <button className="gold-button" disabled={adminActionLoading || followupEligible.length === 0} onClick={sendFollowup} type="button">Enviar follow-up manual do dia ({followupEligible.length})</button>
