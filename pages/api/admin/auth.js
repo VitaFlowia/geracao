@@ -2,14 +2,14 @@ import { getAdminPin } from '../../../lib/event'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+    return res.status(405).json({ error: 'Método não permitido.' })
   }
 
   const providedPin = String(req.body?.pin || '').trim()
   const expectedPin = String(getAdminPin() || '').trim()
 
   if (!expectedPin) {
-    return res.status(500).json({ error: 'ADMIN_PIN nao configurado no ambiente.' })
+    return res.status(500).json({ error: 'ADMIN_PIN não configurado no ambiente.' })
   }
 
   if (providedPin !== expectedPin) {
