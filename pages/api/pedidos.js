@@ -1,5 +1,5 @@
 import { supabase } from '../../lib/supabaseClient'
-import { ADMIN_PIN, calculatePricing, normalizePhone } from '../../lib/event'
+import { calculatePricing, getAdminPin, normalizePhone } from '../../lib/event'
 import { sendOrderCreatedEmails } from '../../lib/email'
 
 function generateId() {
@@ -18,7 +18,7 @@ function sanitizeParticipants(participants) {
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    if (req.headers['x-admin-pin'] !== ADMIN_PIN) {
+    if (req.headers['x-admin-pin'] !== getAdminPin()) {
       return res.status(401).json({ error: 'Acesso admin negado.' })
     }
 
