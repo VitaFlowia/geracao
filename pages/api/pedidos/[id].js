@@ -1,11 +1,11 @@
 import { supabase } from '../../../lib/supabaseClient'
-import { ADMIN_PIN } from '../../../lib/event'
+import { getAdminPin } from '../../../lib/event'
 import { sendPaymentConfirmedEmail } from '../../../lib/email'
 
 export default async function handler(req, res) {
   const { id } = req.query
 
-  if (req.headers['x-admin-pin'] !== ADMIN_PIN) {
+  if (String(req.headers['x-admin-pin'] || '').trim() !== getAdminPin()) {
     return res.status(401).json({ error: 'Acesso admin negado.' })
   }
 
@@ -46,5 +46,5 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true })
   }
 
-  return res.status(405).json({ error: 'Method not allowed' })
+  return res.status(405).json({ error: 'Método não permitido.' })
 }
