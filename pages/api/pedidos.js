@@ -18,7 +18,7 @@ function sanitizeParticipants(participants) {
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    if (req.headers['x-admin-pin'] !== getAdminPin()) {
+    if (String(req.headers['x-admin-pin'] || '').trim() !== getAdminPin()) {
       return res.status(401).json({ error: 'Acesso admin negado.' })
     }
 
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     const paymentMethod = req.body.paymentMethod === 'cartao_presencial' ? 'cartao_presencial' : 'pix'
 
     if (!buyerName || !email || !phone || participants.length === 0) {
-      return res.status(400).json({ error: 'Dados obrigatorios incompletos.' })
+      return res.status(400).json({ error: 'Dados obrigatórios incompletos.' })
     }
 
     const pricing = calculatePricing(participants, new Date())
@@ -83,5 +83,5 @@ export default async function handler(req, res) {
     return res.status(201).json(data)
   }
 
-  return res.status(405).json({ error: 'Method not allowed' })
+  return res.status(405).json({ error: 'Método não permitido.' })
 }
