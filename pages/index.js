@@ -260,18 +260,28 @@ export default function Home() {
 
   async function openAdminArea() {
     try {
-      const response = await fetch('/api/pedidos', {
-        headers: { 'x-admin-pin': pin },
+      const trimmedPin = pin.trim()
+      const authResponse = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: trimmedPin }),
       })
 
-      if (!response.ok) {
-        setPinError('Senha incorreta.')
+      const authData = await authResponse.json()
+      if (!authResponse.ok) {
+        setPinError(authData.error || 'Senha incorreta.')
         return
       }
 
+      const response = await fetch('/api/pedidos', { headers: { 'x-admin-pin': trimmedPin } })
       const data = await response.json()
+      if (!response.ok) {
+        setPinError(data.error || 'Nao foi possivel carregar o dashboard.')
+        return
+      }
+
       setOrders(data)
-      setAdminSessionPin(pin)
+      setAdminSessionPin(trimmedPin)
       setIsAdmin(true)
       setAdminOpen(false)
       setPin('')
@@ -284,6 +294,12 @@ export default function Home() {
   function copyPix() {
     navigator.clipboard.writeText(PIX_KEY)
     setNotice('Chave PIX copiada com sucesso.')
+  }
+
+  function closeAdminDashboard() {
+    setIsAdmin(false)
+    setAdminSessionPin('')
+    setSearch('')
   }
 
   function generatePdf() {
@@ -580,76 +596,115 @@ export default function Home() {
       </main>
 
       {isAdmin ? (
-        <section className="admin-shell">
-          <div className="container admin-header">
-            <div><span className="eyebrow">Dashboard admin</span><h2>Controle completo das inscricoes</h2><p>Ambiente restrito para equipe autorizada.</p></div>
-            <div className="admin-actions">
-              <button className="ghost-button" onClick={generatePdf} type="button">Gerar relatorio em PDF</button>
-              <button className="gold-button" disabled={adminActionLoading || followupEligible.length === 0} onClick={sendFollowup} type="button">Enviar follow-up manual do dia ({followupEligible.length})</button>
+        <div className="modal-shell admin-overlay-shell">
+          <div className="modal-backdrop" onClick={closeAdminDashboard} />
+          <section className="admin-shell admin-dashboard-modal">
+            <button className="modal-close admin-dashboard-close" onClick={closeAdminDashboard} type="button" aria-label="Fechar dashboard">
+              x
+            </button>
+            <div className="admin-topbar container">
+              <div className="admin-topbar-copy">
+                <span className="eyebrow">Painel privado</span>
+                <strong>{EVENT_TITLE}</strong>
+              </div>
+              <div className="admin-topbar-badges">
+                <span>{numbers.totalOrders} inscricoes</span>
+                <span>{numbers.pendingOrders} pendencias</span>
+              </div>
             </div>
-          </div>
+            <div className="container admin-header">
+              <div className="admin-hero-card">
+                <span className="eyebrow">Dashboard admin</span>
+                <h2>Controle completo das inscricoes</h2>
+                <p>Ambiente restrito para equipe autorizada, com leitura rapida dos numeros, pendencias e acao direta sobre os pedidos.</p>
+                <div className="admin-hero-highlights">
+                  <div>
+                    <span>Recebido</span>
+                    <strong>{formatCurrency(numbers.receivedRevenue)}</strong>
+                  </div>
+                  <div>
+                    <span>Pendente</span>
+                    <strong>{formatCurrency(numbers.pendingRevenue)}</strong>
+                  </div>
+                  <div>
+                    <span>Follow-up liberado</span>
+                    <strong>{followupEligible.length}</strong>
+                  </div>
+                </div>
+              </div>
+              <div className="admin-actions-card">
+                <span className="eyebrow">Acoes rapidas</span>
+                <h3>Operacao do dia</h3>
+                <p>Gere relatorios, acompanhe o financeiro e envie o lembrete manual de forma elegante e centralizada.</p>
+                <div className="admin-actions">
+                  <button className="ghost-button" onClick={generatePdf} type="button">Gerar relatorio em PDF</button>
+                  <button className="gold-button" disabled={adminActionLoading || followupEligible.length === 0} onClick={sendFollowup} type="button">Enviar follow-up manual do dia ({followupEligible.length})</button>
+                </div>
+              </div>
+            </div>
 
-          <div className="container admin-metrics">
-            <MetricCard label="Inscricoes" value={numbers.totalOrders} />
-            <MetricCard label="Participantes" value={numbers.totalParticipants} />
-            <MetricCard label="Adultos" value={numbers.totalAdults} />
-            <MetricCard label="Criancas" value={numbers.totalChildren} />
-            <MetricCard label="Pagos" value={numbers.paidOrders} />
-            <MetricCard label="A pagar" value={numbers.pendingOrders} />
-            <MetricCard label="Recebido" value={formatCurrency(numbers.receivedRevenue)} />
-            <MetricCard label="Pendente" value={formatCurrency(numbers.pendingRevenue)} />
-          </div>
+            <div className="container admin-metrics">
+              <MetricCard label="Inscricoes" value={numbers.totalOrders} />
+              <MetricCard label="Participantes" value={numbers.totalParticipants} />
+              <MetricCard label="Adultos" value={numbers.totalAdults} />
+              <MetricCard label="Criancas" value={numbers.totalChildren} />
+              <MetricCard label="Pagos" value={numbers.paidOrders} />
+              <MetricCard label="A pagar" value={numbers.pendingOrders} />
+              <MetricCard label="Recebido" value={formatCurrency(numbers.receivedRevenue)} />
+              <MetricCard label="Pendente" value={formatCurrency(numbers.pendingRevenue)} />
+            </div>
 
-          <div className="container admin-panels">
-            <div className="admin-panel">
-              <div className="panel-head"><div><span className="eyebrow">Pendencias</span><h3>Quem ainda precisa pagar</h3></div></div>
-              {numbers.pendingOrders === 0 ? <p>Todas as familias ja estao com o pagamento confirmado.</p> : (
-                <ul className="name-list">
-                  {orders.filter((order) => !order.pagamento_confirmado).map((order) => (
-                    <li key={order.id}><strong>{order.buyer_name}</strong><span>{order.participant_count} participante(s) - {formatCurrency(order.amount_due)}</span></li>
+            <div className="container admin-panels">
+              <div className="admin-panel">
+                <div className="panel-head"><div><span className="eyebrow">Pendencias</span><h3>Quem ainda precisa pagar</h3></div></div>
+                {numbers.pendingOrders === 0 ? <p>Todas as familias ja estao com o pagamento confirmado.</p> : (
+                  <ul className="name-list">
+                    {orders.filter((order) => !order.pagamento_confirmado).map((order) => (
+                      <li key={order.id}><strong>{order.buyer_name}</strong><span>{order.participant_count} participante(s) - {formatCurrency(order.amount_due)}</span></li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div className="admin-panel">
+                <div className="panel-head"><div><span className="eyebrow">Categorias</span><h3>Relacao por adulto e crianca</h3></div></div>
+                <div className="category-columns">
+                  <div className="category-card"><strong>Adultos</strong><ul className="mini-list">{orders.flatMap((order) => order.participants.filter((participant) => participant.category === 'adulto')).map((participant, index) => <li key={`${participant.name}-${index}`}>{participant.name}</li>)}</ul></div>
+                  <div className="category-card"><strong>Criancas</strong><ul className="mini-list">{orders.flatMap((order) => order.participants.filter((participant) => participant.category === 'crianca')).map((participant, index) => <li key={`${participant.name}-${index}`}>{participant.name}</li>)}</ul></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="container admin-order-list">
+              <div className="panel-head">
+                <div><span className="eyebrow">Pedidos</span><h3>Busca, confirmacao de pagamento e historico</h3></div>
+                <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por nome, email ou telefone" />
+              </div>
+
+              {ordersLoading ? <p>Carregando pedidos...</p> : filteredOrders.length === 0 ? <p>Nenhum pedido encontrado.</p> : (
+                <div className="order-cards">
+                  {filteredOrders.map((order) => (
+                    <article className={`order-card ${order.pagamento_confirmado ? 'paid' : ''}`} key={order.id}>
+                      <div className="order-head">
+                        <div><span className="order-id">{order.id}</span><h4>{order.buyer_name}</h4><p>{order.email} - {order.telefone}</p></div>
+                        <div className="order-status"><span className={order.pagamento_confirmado ? 'paid-badge' : 'pending-badge'}>{order.pagamento_confirmado ? 'Pago' : 'Aguardando pagamento'}</span><strong>{formatCurrency(order.amount_due)}</strong></div>
+                      </div>
+                      <div className="order-meta">
+                        <div><span>Lote</span><strong>{order.lot_name}</strong></div>
+                        <div><span>Pagamento</span><strong>{paymentLabel(order.payment_method)}</strong></div>
+                        <div><span>Follow-up</span><strong>{order.followup_count || 0}</strong></div>
+                        <div><span>Status</span><strong>{order.status}</strong></div>
+                      </div>
+                      <ul className="participant-list">
+                        {order.participants.map((participant) => <li key={`${order.id}-${participant.id}`}><strong>{participant.name}</strong><span>{participant.category}</span></li>)}
+                      </ul>
+                      <button className={`payment-confirm-button ${order.pagamento_confirmado ? 'is-paid' : ''}`} disabled={adminActionLoading} onClick={() => togglePaid(order)} type="button">{order.pagamento_confirmado ? 'Marcar como pendente novamente' : 'Confirmar pagamento e enviar e-mail'}</button>
+                    </article>
                   ))}
-                </ul>
+                </div>
               )}
             </div>
-            <div className="admin-panel">
-              <div className="panel-head"><div><span className="eyebrow">Categorias</span><h3>Relacao por adulto e crianca</h3></div></div>
-              <div className="category-columns">
-                <div><strong>Adultos</strong><ul className="mini-list">{orders.flatMap((order) => order.participants.filter((participant) => participant.category === 'adulto')).map((participant, index) => <li key={`${participant.name}-${index}`}>{participant.name}</li>)}</ul></div>
-                <div><strong>Criancas</strong><ul className="mini-list">{orders.flatMap((order) => order.participants.filter((participant) => participant.category === 'crianca')).map((participant, index) => <li key={`${participant.name}-${index}`}>{participant.name}</li>)}</ul></div>
-              </div>
-            </div>
-          </div>
-
-          <div className="container admin-order-list">
-            <div className="panel-head">
-              <div><span className="eyebrow">Pedidos</span><h3>Busca, confirmacao de pagamento e historico</h3></div>
-              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por nome, email ou telefone" />
-            </div>
-
-            {ordersLoading ? <p>Carregando pedidos...</p> : filteredOrders.length === 0 ? <p>Nenhum pedido encontrado.</p> : (
-              <div className="order-cards">
-                {filteredOrders.map((order) => (
-                  <article className={`order-card ${order.pagamento_confirmado ? 'paid' : ''}`} key={order.id}>
-                    <div className="order-head">
-                      <div><span className="order-id">{order.id}</span><h4>{order.buyer_name}</h4><p>{order.email} - {order.telefone}</p></div>
-                      <div className="order-status"><span className={order.pagamento_confirmado ? 'paid-badge' : 'pending-badge'}>{order.pagamento_confirmado ? 'Pago' : 'Aguardando pagamento'}</span><strong>{formatCurrency(order.amount_due)}</strong></div>
-                    </div>
-                    <div className="order-meta">
-                      <div><span>Lote</span><strong>{order.lot_name}</strong></div>
-                      <div><span>Pagamento</span><strong>{paymentLabel(order.payment_method)}</strong></div>
-                      <div><span>Follow-up</span><strong>{order.followup_count || 0}</strong></div>
-                      <div><span>Status</span><strong>{order.status}</strong></div>
-                    </div>
-                    <ul className="participant-list">
-                      {order.participants.map((participant) => <li key={`${order.id}-${participant.id}`}><strong>{participant.name}</strong><span>{participant.category}</span></li>)}
-                    </ul>
-                    <button className={`payment-confirm-button ${order.pagamento_confirmado ? 'is-paid' : ''}`} disabled={adminActionLoading} onClick={() => togglePaid(order)} type="button">{order.pagamento_confirmado ? 'Marcar como pendente novamente' : 'Confirmar pagamento e enviar e-mail'}</button>
-                  </article>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
+          </section>
+        </div>
       ) : null}
     </>
   )
