@@ -1,5 +1,5 @@
 import { supabase } from '../../lib/supabaseClient'
-import { ADMIN_PIN, getTodayKey } from '../../lib/event'
+import { getAdminPin, getTodayKey } from '../../lib/event'
 import { sendFollowupEmail } from '../../lib/email'
 
 export default async function handler(req, res) {
@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  if (req.headers['x-admin-pin'] !== ADMIN_PIN) {
+  if (req.headers['x-admin-pin'] !== getAdminPin()) {
     return res.status(401).json({ error: 'Acesso admin negado.' })
   }
 
