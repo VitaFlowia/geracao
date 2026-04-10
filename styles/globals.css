@@ -129,7 +129,7 @@ img { display: block; max-width: 100%; }
   color: #fff9eb;
   background: rgba(200, 161, 77, 0.34);
   border: 1px solid rgba(255, 255, 255, 0.16);
-  margin-top: 6px;
+  margin-top: -72px;
 }
 .hero-copy {
   max-width: 540px;
