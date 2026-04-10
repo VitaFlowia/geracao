@@ -551,7 +551,16 @@ export default function Home() {
         <footer className="footer">
           <div className="container footer-content">
             <div><span className="eyebrow">Realizacao</span><h3>{EVENT_TITLE}</h3><p>{EVENT_SUBTITLE}</p><p>Confirmacoes tambem pelo e-mail {SCHOOL_EMAIL}</p></div>
-            <div className="footer-cranios"><img src="/logo-cranios-bottom.png" alt="Cranios" /></div>
+            <div className="footer-cranios">
+              <a href="https://www.cranios.pro/" target="_blank" rel="noreferrer">
+                <img src="/logo-cranios-bottom.png" alt="Cranios" />
+              </a>
+              <div className="footer-cranios-copy">
+                <strong>Crânios</strong>
+                <a href="https://www.cranios.pro/" target="_blank" rel="noreferrer">www.cranios.pro</a>
+                <a href="https://wa.me/5511913377110" target="_blank" rel="noreferrer">Entre em contato</a>
+              </div>
+            </div>
           </div>
         </footer>
 
