@@ -4,10 +4,10 @@ import { sendFollowupEmail } from '../../lib/email'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+    return res.status(405).json({ error: 'Método não permitido.' })
   }
 
-  if (req.headers['x-admin-pin'] !== getAdminPin()) {
+  if (String(req.headers['x-admin-pin'] || '').trim() !== getAdminPin()) {
     return res.status(401).json({ error: 'Acesso admin negado.' })
   }
 
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
   })
 
   if (!eligibleOrders.length) {
-    return res.status(200).json({ message: 'Nenhum follow-up disponivel para hoje.' })
+    return res.status(200).json({ message: 'Nenhum follow-up disponível para hoje.' })
   }
 
   let sentCount = 0
